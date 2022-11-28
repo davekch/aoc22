@@ -68,7 +68,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-d", "--day", default=date.today().day, type=int)
     parser.add_argument("-y", "--year", default=date.today().year, type=int)
-    parser.add_argument("-l", "--language", default=["py"], nargs="+")
+    parser.add_argument("-l", "--language", default=["hs"], nargs="+")
     parser.add_argument("--no-download", dest="skip_download", action="store_true")
     args = parser.parse_args()
 
