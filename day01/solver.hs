@@ -7,18 +7,18 @@ getInput = readFile "input.txt"
 
 --------------------------------------------------------------------
 
-type Parsed = [[Int]]
+type Parsed = [Int]
 type Sol1 = Int
 type Sol2 = Int
 
 parse :: String -> Parsed
-parse = map (map read) . U.groupByEmptyLines
+parse = reverse . sort . map sum . map (map read) . U.groupByEmptyLines
 
 solve1 :: Parsed -> Sol1
-solve1 = maximum . map sum
+solve1 = head
 
 solve2 :: Parsed -> Sol2
-solve2 = sum . take 3 . reverse . sort . map sum
+solve2 = sum . take 3
 
 testdata = "1000\n\
 \2000\n\
