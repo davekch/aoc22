@@ -6,5 +6,6 @@
 *.swp
 *.o
 *.hi
+*.dyn_*
 *solver
 aoc_session.sh
