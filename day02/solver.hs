@@ -2,8 +2,6 @@
 
 import Text.RawString.QQ 
 import Data.List
-import Data.Map (Map)
-import qualified Data.Map as Map
 import Data.Bimap (Bimap)
 import qualified Data.Bimap as Bimap
 import Utils as U
@@ -18,7 +16,7 @@ type Parsed = [(Char, Char)]
 type Sol1 = Int
 type Sol2 = Int
 
-data RPS = Rock | Paper | Scissors deriving (Eq, Show, Ord)
+data RPS = Rock | Paper | Scissors deriving (Eq, Show, Ord, Enum)
 
 convert :: Char -> RPS
 convert 'X' = Rock
@@ -32,29 +30,19 @@ convert _ = undefined
 parse :: String -> Parsed
 parse = map (\(a:_:b:[]) -> (a, b)) . lines
 
--- win for the second player; tie is not a win
-win :: (RPS, RPS) -> Bool
-win (Rock, Paper) = True
-win (Paper, Scissors) = True
-win (Scissors, Rock) = True
-win _ = False
+beatsmap :: Bimap RPS RPS
+beatsmap = Bimap.fromList [(Rock, Scissors), (Paper, Rock), (Scissors, Paper)]
 
 winscore :: (RPS, RPS) -> Int
 winscore (x, y)
     | x == y = 3
-    | otherwise = if win (x, y) then 6 else 0
-
-scoremap :: Map RPS Int
-scoremap = Map.fromList [(Rock, 1), (Paper, 2), (Scissors, 3)]
+    | otherwise = if (x, y) `Bimap.pairMember` beatsmap then 6 else 0
 
 score :: (RPS, RPS) -> Int
-score (x, y) = (winscore (x, y)) + (scoremap Map.! y)
+score (x, y) = (winscore (x, y)) + (fromEnum y + 1)
 
 solve1 :: Parsed -> Sol1
 solve1 = sum . map score . map (\(x, y) -> (convert x, convert y))
-
-beatsmap :: Bimap RPS RPS
-beatsmap = Bimap.fromList [(Rock, Scissors), (Paper, Rock), (Scissors, Paper)]
 
 strategy :: (Char, Char) -> RPS
 strategy (xx, y)
