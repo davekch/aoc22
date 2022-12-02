@@ -2,6 +2,7 @@
 
 import Text.RawString.QQ 
 import Data.List
+import Data.Char
 import Data.Bimap (Bimap)
 import qualified Data.Bimap as Bimap
 import Utils as U
@@ -19,12 +20,9 @@ type Sol2 = Int
 data RPS = Rock | Paper | Scissors deriving (Eq, Show, Ord, Enum)
 
 convert :: Char -> RPS
-convert 'X' = Rock
-convert 'A' = Rock
-convert 'B' = Paper
-convert 'Y' = Paper
-convert 'C' = Scissors
-convert 'Z' = Scissors
+convert x
+    | x `elem` "ABC" = toEnum (ord x - ord 'A')
+    | x `elem` "XYZ" = toEnum (ord x - ord 'X')
 convert _ = undefined
 
 parse :: String -> Parsed
