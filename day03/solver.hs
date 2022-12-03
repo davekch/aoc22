@@ -3,6 +3,8 @@
 import Text.RawString.QQ 
 import Data.List
 import Data.List.Split (chunksOf)
+import qualified Data.Set as Set
+import Data.Set (Set)
 import Data.Char
 import Utils as U
 import Utils (CLIOptions, clioptions)
@@ -12,38 +14,30 @@ getInput = readFile "input.txt"
 
 --------------------------------------------------------------------
 
-type Parsed = [(String, String)]
+type Parsed = [String]
 type Sol1 = Int
 type Sol2 = Int
 
 parse :: String -> Parsed
-parse input = [splitAt (flip div 2 $ length l) l | l <- lines input]
+parse = lines
+
+splitCompartments :: String -> [Set Char]
+splitCompartments s = setify . splitAt (flip div 2 . length $ s) $ s
+    where setify (c1, c2) = [Set.fromList c1, Set.fromList c2] 
+
+commonChar :: [Set Char] -> Char
+commonChar = head . Set.toList . U.intersections
 
 priority :: Char -> Int
 priority a
     | isLower a = ord a - ord 'a' + 1
     | isUpper a = ord a - ord 'A' + priority 'z' + 1
 
--- get the char that is in both strings
-inBoth :: (String, String) -> Char
-inBoth ((c:s1), s2)
-    | c `elem` s2 = c
-    | otherwise = inBoth (s1, s2)
-
 solve1 :: Parsed -> Sol1
-solve1 = sum . map (priority . inBoth)
-
---- split rucksacks into groups of 3 and also join back together the compartments
-splitGroups :: Parsed -> [[String]]
-splitGroups = chunksOf 3 . map (\(s1, s2) -> s1 ++ s2)
-
-inAll :: [String] -> Char
-inAll ((c:s1):s2:s3:[])
-    | (c `elem` s2) && (c `elem` s3) = c
-    | otherwise = inAll (s1:s2:s3:[])
+solve1 = sum . map (priority . commonChar . splitCompartments)
 
 solve2 :: Parsed -> Sol2
-solve2 = sum . map (priority . inAll) . splitGroups
+solve2 = sum . map (priority . commonChar) . chunksOf 3 . map Set.fromList
 
 
 testdata = [r|vJrwpWtwJgWrhcsFMMfFFhFp
