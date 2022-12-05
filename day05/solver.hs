@@ -21,33 +21,38 @@ data Instruction = Instruction Int Int Int deriving (Show)
 parse :: String -> Parsed
 parse input = (parseStack . reverse $ stack, parseInstructions moves)
     where
-        ([stack, moves]) = U.groupByEmptyLines input
+        [stack, moves] = U.groupByEmptyLines input
 
+-- create a stack-map for each line and then fold the resulting list
 parseStack :: [String] -> Map Int String
-parseStack (index:stack) = parseStack' stack map
+parseStack (index:stack) = foldl (Map.unionWith (++)) emptystack (reverse $ parseStack' stack)
     where
-        map = Map.fromList [(i, "") | i<-(U.parseInts index)]
-        parseStack' (l:lines) map = parseStack' lines (parseStackLine l 1 map)
-        parseStack' ([]) map = map
+        emptystack = Map.fromList [(i, "") | i<-(U.parseInts index)]
+        parseStack' (s:ss) = parseStackLine s : parseStack' ss
+        parseStack' [] = []
 
-parseStackLine :: String -> Int -> Map Int String -> Map Int String
-parseStackLine ('[':x:']':line) i map = parseStackLine (if line=="" then line else tail line) (i+1) (Map.insertWith (++) i (x:[]) map)
-parseStackLine (' ':' ':' ':line) i map = parseStackLine (if line=="" then line else tail line) (i+1) map
-parseStackLine ([]) i map = map
+parseStackLine :: String -> Map Int String
+parseStackLine line = Map.filter (/=" ") $ Map.fromList (zip [1..n] cs)
+    where
+        -- every forth element is a crate in a stack; map (:[]) just converts from [Char] to [String]
+        cs = map (:[]) . takeEvery 4 $ drop 1 line
+        n = length cs
 
 parseInstructions :: [String] -> [Instruction]
 parseInstructions (l:lines) = Instruction n a b : parseInstructions lines
     where [n, a, b] = U.parseInts l
-parseInstructions ([]) = []
+parseInstructions [] = []
 
 move :: Map Int String -> Instruction -> Map Int String
-move map (Instruction 1 a b) = Map.adjust (c++) b poppedmap
+move map (Instruction 1 a b) = Map.adjust (c:) b poppedmap
     where
-        c = (head $ map Map.! a) : []
+        c = (head $ map Map.! a)
         poppedmap = Map.adjust tail a map
 move map (Instruction n a b) = move (move map (Instruction 1 a b)) (Instruction (n-1) a b)
 
-topcrates map = [head $ (map Map.! i) | i<-Map.keys map]
+-- get the first element of each string in the map's elements and fold them to a string
+topcrates :: Map Int String -> String
+topcrates = Map.foldr ((:) . head) ""
 
 solve1 :: Parsed -> Sol1
 solve1 ((map, moves)) = topcrates $ foldl move map moves
