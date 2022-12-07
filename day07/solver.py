@@ -39,7 +39,8 @@ def parse(raw_data):
                 size, name = line.split()
                 size = int(size)
                 dir["files"].append((name, size))
-    return tree
+    
+    return calcsizes("/", tree)
 
 
 def calcsizes(name, tree):
@@ -53,19 +54,6 @@ def calcsizes(name, tree):
         sizes[nname] = subsizes
     return sizes["total"], sizes
 
-
-def sumlesserthan(sizes, maxsize):
-    # rich.print(sizes)
-    total = 0
-    for name, ssizes in sizes.items():
-        if name == "total":
-            if ssizes <= maxsize:
-                total += ssizes
-            continue
-        if name == "files":
-            continue
-        total += sumlesserthan(ssizes, maxsize)
-    return total
 
 def filtersizes(sizes, conditional):
     filtered = []
@@ -82,15 +70,14 @@ def filtersizes(sizes, conditional):
 # PART 1
 @measure_time
 def solve1(data):
-    total, sizes = calcsizes("/", data)
-    # rich.print(sizes)
-    return sumlesserthan(sizes, 100000)
+    _, sizes = data
+    return sum(filtersizes(sizes, lambda s: s<=100000))
 
 
 # PART 2
 @measure_time
 def solve2(data):
-    total, sizes = calcsizes("/", data)
+    total, sizes = data
     required = 30000000
     available = 70000000
     mustdelete = required - (available - total)
