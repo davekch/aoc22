@@ -3,67 +3,47 @@
 import Text.RawString.QQ 
 import Data.List
 import qualified Data.Map as Map
-import Data.Map (Map)
+import Data.Vector (Vector)
 import Data.Char (ord)
 import Utils
 import AoC
+import Geometry
 
 getInput :: IO String
 getInput = readFile "input.txt"
 
 --------------------------------------------------------------------
 
-type Point = (Int, Int)
+type Point = Vector Int
+type Forest = Grid Int Int
 
-type Parsed = Map Point Int
+type Parsed = Forest
 type Sol1 = Int
 type Sol2 = Int
 
 parse :: String -> Parsed
-parse input = Map.fromList (toPointList enumerated)
-    where
-        enumerated = enumerate . map enumerate . lines $ input
+parse = Map.map ((flip (-) 48) . ord) . gridFromString
 
-toPointListLine :: (Int, [(Int, Char)]) -> [(Point, Int)]
-toPointListLine ((_, [])) = []
-toPointListLine ((y, (x,t):ts)) = ((x, y), ord t - 48) : toPointListLine (y, ts)
-toPointList = concat . map toPointListLine
-
-visible :: Map Point Int -> Point -> Bool
+visible :: Forest -> Point -> Bool
 visible grid p = (all smaller left) || (all smaller right) || (all smaller up) || (all smaller down) || (any (==[]) [left, right, up, down])
     where
         smaller = (< grid Map.! p)
-        left  = goFrom p (mapp pred id) grid
-        right = goFrom p (mapp succ id) grid
-        down  = goFrom p (mapp id succ) grid
-        up    = goFrom p (mapp id pred) grid
-
-goFrom :: Point -> (Point -> Point) -> Map Point Int -> [Int]
-goFrom p f grid = case Map.lookup p' grid of
-    Nothing -> []
-    Just h' -> h' : goFrom p' f grid
-    where
-        p' = f p
-    
-mapp :: (Int -> Int) -> (Int -> Int) -> Point -> Point
-mapp fx fy (x, y) = (fx x, fy y)
+        left  = map snd $ walkGrid grid (vadd (mkVec [-1,0])) p
+        right = map snd $ walkGrid grid (vadd (mkVec [1,0])) p
+        down  = map snd $ walkGrid grid (vadd (mkVec [0,1])) p
+        up    = map snd $ walkGrid grid (vadd (mkVec [0,-1])) p
 
 solve1 :: Parsed -> Sol1
 solve1 parsed = length . filter (visible parsed) . Map.keys $ parsed
 
-view :: Map Point Int -> Point -> Int
+view :: Forest -> Point -> Int
 view grid p = product $ map countVisible [left, right, up, down]
     where
-        left  = lookLeft grid p
-        right = lookRight grid p
-        down  = lookDown grid p
-        up    = lookUp grid p
+        left  = map snd $ walkGrid grid (vadd (mkVec [-1,0])) p
+        right = map snd $ walkGrid grid (vadd (mkVec [1,0])) p
+        down  = map snd $ walkGrid grid (vadd (mkVec [0,1])) p
+        up    = map snd $ walkGrid grid (vadd (mkVec [0,-1])) p
         countVisible = length . takeWhileInclusive (< grid Map.! p)
-
-lookLeft  grid p = goFrom p (mapp pred id) grid
-lookRight grid p = goFrom p (mapp succ id) grid
-lookDown  grid p = goFrom p (mapp id succ) grid
-lookUp    grid p = goFrom p (mapp id pred) grid
 
 solve2 :: Parsed -> Sol2
 solve2 parsed = maximum . map (view parsed) . Map.keys $ parsed
