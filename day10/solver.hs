@@ -2,8 +2,7 @@
 
 import Text.RawString.QQ 
 import Data.List
--- import qualified Data.Map as Map
--- import Data.Map (Map)
+import Data.List.Split (chunksOf)
 import Utils
 import AoC
 
@@ -14,7 +13,7 @@ getInput = readFile "input.txt"
 
 type Parsed = [(Instruction, Int)]
 type Sol1 = Int
-type Sol2 = Int
+type Sol2 = String
 
 data Instruction = Noop | Addx Int deriving (Show)
 type Registry = Int
@@ -57,15 +56,20 @@ runProgram vm = reverse . runProgram' [registry vm] vm
                 (vm', instructionq') = clockTick vm instructionq
 
 times = [19, 59, 99, 139, 179, 219]
-times' = [20, 60, 100, 140, 180, 220] :: [Int]
 
 solve1 :: Parsed -> Sol1
 solve1 parsed = sum $ zipWith (*) (map (+1) times) [reghistory !! t | t<-times]
     where
         reghistory = runProgram vminit parsed
 
+drawPixel :: Int -> Registry -> Char
+drawPixel clock reg = if clock >= reg-1 && clock <= reg+1 then '#' else '.'
+
 solve2 :: Parsed -> Sol2
-solve2 parsed = undefined
+solve2 parsed = intercalate "\n" . chunksOf 40 $ zipWith drawPixel (cycle [0..39]) reghistory
+    where
+        -- for some reason there's one value too much at the end, so let's take init
+        reghistory = init $ runProgram vminit parsed
 
 
 testdata = [r|addx 15
@@ -215,7 +219,12 @@ noop
 noop
 noop|]
 testresult1 = 13140
-testresult2 = 0
+testresult2 = [r|##..##..##..##..##..##..##..##..##..##..
+###...###...###...###...###...###...###.
+####....####....####....####....####....
+#####.....#####.....#####.....#####.....
+######......######......######......####
+#######.......#######.......#######.....|]
 
 --------------------------------------------------------------------
 
