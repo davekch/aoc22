@@ -16,7 +16,7 @@ def parse(raw_data: str):
         monks = monks.splitlines()
         index = int(monks[0].split()[-1][:-1])
         items = list(map(int, monks[1].split(":")[1].split(",")))
-        operation = monks[2].split(":")[1].strip()
+        operation = monks[2].split("=")[1].strip()
         condition = (int(monks[3].split()[-1]), int(monks[4].split()[-1]), int(monks[5].split()[-1]))
         monkeys.append({
             "index": index,
@@ -37,9 +37,7 @@ def solve1(data):
             while monkey["items"]:
                 monkeycount[i] += 1
                 item = monkey["items"].pop(0)
-                locals = {"old": item, "new": None}
-                exec(monkey["operation"], {}, locals)
-                newitem = locals["new"] // 3
+                newitem = eval(monkey["operation"], {}, {"old": item}) // 3
                 divby, then, otherwise = monkey["condition"]
                 if newitem % divby == 0:
                     newmonkey = then
@@ -62,32 +60,23 @@ def solve2(data):
             items.append({"worry": item, "monkey": monkey["index"]})
 
     for round in range(20):
-        if round % 100:
-            print(f"{round=}")
+        print(f"{round=}")
         for item in items:
-            # print(f"start round {round}, {item=}, {monkey['index']=}, {m['index']=}")
+            print(f"  processing {item=}")
             monkey = monkeys[item["monkey"]]
             while item["monkey"] >= monkey["index"]:
                 monkey = monkeys[item["monkey"]]
                 monkeycount[item["monkey"]] += 1
-                locals = {"old": item["worry"], "new": None}
-                exec(monkey["operation"], {}, locals)
-                item["worry"] = locals["new"]
+                item["worry"] = eval(monkey["operation"], {}, {"old": item["worry"]})
+                print(f"    operated on worry level, got {item['worry']=}")
                 divby, then, otherwise = monkey["condition"]
-                # item["worry"] = item["worry"] % divby
                 if item["worry"] % divby == 0:
+                    print(f"    was divisible by {divby}, throw to monkey {then}")
                     item["monkey"] = then
-                    # i somehow need to reduce the worry amount, but this is not it
-                    item["worry"] = item["worry"] // divby
                 else:
+                    print(f"    was not divisible by {divby}, throw to monkey {otherwise}")
                     item["monkey"] = otherwise
-                    # item["worry"] = item["worry"] % divby
-            print(f"{item=}")
-                
-            # does not work because an item can be thrown more than one time per round
-
-            # print(f"end round {round}, {monkey['index']=}, {m['index']=}")
-            # print(f"{monkeycount=}")
+            print(f"  {item=}")
 
     print(monkeycount)
     m1, m2, *_ = sorted(monkeycount.values(), reverse=True)
