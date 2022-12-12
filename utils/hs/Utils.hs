@@ -9,6 +9,8 @@ import Data.List
 import Data.List.Split (splitOn)
 import qualified Data.Set as Set
 import Data.Set (Set)
+import qualified Data.Map as Map
+import Data.Map (Map)
 import Text.Read
 
 
@@ -66,6 +68,13 @@ takeWhileInclusive f (x:xs) = x : if f x then takeWhileInclusive f xs else []
 applyN :: Int -> (a -> a) -> a -> a
 applyN 0 f x = x
 applyN n f x = applyN (n-1) f (f x)
+
+-- look up a value in a map, return the first match
+lookupValue :: (Ord k, Eq v) => v -> Map k v -> Maybe k
+lookupValue val = getfirst . Map.toList . Map.filter (==val)
+    where
+        getfirst [] = Nothing
+        getfirst ((k',v'):_) = Just k'
 
 -------------------------------------------------- Tree stuff -----------
 
