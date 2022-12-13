@@ -65,12 +65,8 @@ solve1 = sum . map fst . filter ((==LT) . snd) . zip [1..] . map comparePair
 divider1 = L [L [I 2]]
 divider2 = L [L [I 6]]
 
-indicesOf :: Eq a => [a] -> [a] -> [Int]
-indicesOf [] _ = []
-indicesOf (x:xs) ls = elemIndices x ls ++ indicesOf xs ls
-
 solve2 :: Parsed -> Sol2
-solve2 = product . map (+1) . indicesOf [divider1, divider2] . sort . (++ [divider1, divider2]) . concat
+solve2 = product . map succ . findIndices (`elem` [divider1, divider2]) . sort . (++ [divider1, divider2]) . concat
 
 
 testdata = [r|[1,1,3,1,1]
