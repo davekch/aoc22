@@ -55,31 +55,38 @@ def solve2(data):
     monkeys = data[:]
     monkeycount = Counter()
     items = []
+    modnumbers = [m["condition"][0] for m in monkeys]
+    print(modnumbers)
+    n = 1
+    for m in modnumbers:
+        n *= m
+    # print(n)
     for monkey in monkeys:
         for item in monkey["items"]:
             items.append({"worry": item, "monkey": monkey["index"]})
 
-    for round in range(20):
-        print(f"{round=}")
+    for round in range(10000):
+        # print(f"{round=}")
         for item in items:
-            print(f"  processing {item=}")
+            # print(f"  processing {item=}")
             monkey = monkeys[item["monkey"]]
             while item["monkey"] >= monkey["index"]:
                 monkey = monkeys[item["monkey"]]
                 monkeycount[item["monkey"]] += 1
-                item["worry"] = eval(monkey["operation"], {}, {"old": item["worry"]})
-                print(f"    operated on worry level, got {item['worry']=}")
+                item["worry"] = eval(monkey["operation"], {}, {"old": item["worry"]}) % n
+                # print(f"    operated on worry level, got {item['worry']=}")
                 divby, then, otherwise = monkey["condition"]
                 if item["worry"] % divby == 0:
-                    print(f"    was divisible by {divby}, throw to monkey {then}")
+                    # print(f"    was divisible by {divby}, throw to monkey {then}")
                     item["monkey"] = then
                 else:
-                    print(f"    was not divisible by {divby}, throw to monkey {otherwise}")
+                    # print(f"    was not divisible by {divby}, throw to monkey {otherwise}")
                     item["monkey"] = otherwise
-            print(f"  {item=}")
+            # print(f"  {item=}")
 
-    print(monkeycount)
+    # print(monkeycount)
     m1, m2, *_ = sorted(monkeycount.values(), reverse=True)
+    # return 0
     return m1 * m2
 
 
