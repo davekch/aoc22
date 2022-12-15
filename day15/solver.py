@@ -6,24 +6,6 @@ import re
 from collections import Counter
 
 
-def gridprint(grid):
-    minx, maxx, miny, maxy = corners(grid)
-    img = ""
-    for y in range(miny, maxy+1):
-        for x in range(minx, maxx+1):
-            if (x,y) in grid:
-                p = grid[(x,y)]
-            else:
-                p = "."
-            img += str(p)
-        img += "\n"
-    print(img)
-
-def corners(grid):
-    xs = [x for x,_ in grid.keys()]
-    ys = [y for _,y in grid.keys()]
-    return min(xs), max(xs), min(ys), max(ys)
-
 def manhattan(p1, p2):
     x1,y1 = p1
     x2,y2 = p2
@@ -140,7 +122,7 @@ def solve1(data, yaxis=2000000):
 # PART 2
 @measure_time
 def solve2(data, searchspace=(0, 4000000)):
-    visualize = False #or True
+    visualize = False or True
     # if visualize:
     #     data = {k: v for k, v in data.items() if k in [(8,7), (14,3)]}
     shapes = [make_diamond(sensor, beacon) for sensor, beacon in data.items()]
@@ -160,7 +142,7 @@ def solve2(data, searchspace=(0, 4000000)):
         for i,s in enumerate(shapes):
             for p in s:
                 grid[p] = ascii_letters[i]
-        gridprint(grid)
+        print(utils.dictgrid_to_str(grid, empty="."))
         return
 
     x, y = find_undetected(isecs, shapes, searchspace)

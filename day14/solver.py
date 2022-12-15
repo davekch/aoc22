@@ -27,24 +27,6 @@ def parse(raw_data):
     grid[ORIGIN] = "+"
     return grid
 
-def gridprint(grid):
-    minx, maxx, miny, maxy = corners(grid)
-    img = ""
-    for y in range(miny, maxy+1):
-        for x in range(minx, maxx+1):
-            if (x,y) in grid:
-                p = grid[(x,y)]
-            else:
-                p = " "
-            img += p
-        img += "\n"
-    print(img)
-
-def corners(grid):
-    xs = [x for x,_ in grid.keys()]
-    ys = [y for _,y in grid.keys()]
-    return min(xs), max(xs), min(ys), max(ys)
-
 def available(p, grid, bottom=None):
     if p in grid:
         return False
@@ -54,7 +36,7 @@ def available(p, grid, bottom=None):
 
 def falling_sand(grid, bottom=None):
     x, y = ORIGIN
-    minx, maxx, miny, maxy = corners(grid)
+    minx, maxx, miny, maxy = utils.corners(grid)
     while True:
         dy = 1
         dx = 0
@@ -86,7 +68,7 @@ def solve1(data):
 # PART 2
 @measure_time
 def solve2(data):
-    minx, maxx, miny, maxy = corners(data)
+    minx, maxx, miny, maxy = utils.corners(data)
     bottom = maxy + 2
     c = 0
     while data[ORIGIN] != "o":
