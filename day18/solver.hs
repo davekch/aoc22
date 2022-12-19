@@ -47,18 +47,41 @@ buildShape = foldl buildShape' Set.empty
         buildShape' :: Shape -> Cube -> Shape
         buildShape' shape cube = Set.union (shape Set.\\ cube) (cube Set.\\ shape)
 
-sumArea :: [Cube] -> Int
-sumArea = length . buildShape
-
 parse :: String -> Parsed
 parse input = [shift offset cube | offset <- offsets]
     where offsets = linesWith (mkVec . parseInts) input
 
 solve1 :: Parsed -> Sol1
-solve1 = sumArea
+solve1 = length . buildShape
+
+-- take a shape and filter out shapes that are not connected to the outer
+-- surface (removing cavities)
+outerSurface :: Shape -> Shape
+outerSurface shape = foldl connect start shape
+    where
+        start = Set.singleton $ Set.toAscList shape !! 0
+        connect shape surface =
+            if any (hasCommonPoints surface) shape
+            then Set.insert surface shape
+            else shape
+        hasCommonPoints s1 s2 = not $ Set.disjoint s1 s2
 
 solve2 :: Parsed -> Sol2
-solve2 parsed = undefined
+solve2 = length . outerSurface . buildShape
+
+-- for debugging
+showShape :: Shape -> String
+showShape shape = show $ map Set.toList $ Set.toList shape
+
+generateJSON :: String -> Parsed -> IO ()
+generateJSON filename parsed = writeFile filename $ [r|{
+    "fullshape": |] ++ showShape fullshape ++ [r|,
+    "innershape": |] ++ showShape innershape ++ [r|,
+    "outershape": |] ++ showShape outershape ++ "\n}\n"
+        where
+            fullshape = buildShape parsed
+            outershape = outerSurface fullshape
+            innershape = fullshape Set.\\ outershape
 
 
 testdata = [r|2,2,2
