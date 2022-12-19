@@ -61,6 +61,10 @@ slideWith f n = map f . slide n
 enumerate :: [a] -> [(Int, a)]
 enumerate = zip [0..]
 
+capitalize :: String -> String
+capitalize [] = []
+capitalize (first:rest) = toUpper first : map toLower rest
+
 takeWhileInclusive :: (a -> Bool) -> [a] -> [a]
 takeWhileInclusive _ [] = []
 takeWhileInclusive f (x:xs) = x : if f x then takeWhileInclusive f xs else []
