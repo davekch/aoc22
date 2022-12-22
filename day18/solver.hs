@@ -66,6 +66,25 @@ outerSurface shape = foldl connect start shape
             else shape
         hasCommonPoints s1 s2 = not $ Set.disjoint s1 s2
 
+xy = mkVec [
+        mkVec [1, 0, 0],
+        mkVec [0, 1, 0],
+        mkVec [0, 0, 0]
+    ]
+xz = mkVec [
+        mkVec [1, 0, 0],
+        mkVec [0, 0, 0],
+        mkVec [0, 0, 1]
+    ]
+zy = mkVec [
+        mkVec [0, 0, 0],
+        mkVec [0, 1, 0],
+        mkVec [0, 0, 1]
+    ]
+
+project :: Vector (Vector Int) -> Surface -> Surface
+project mat surface = Set.map (matmul mat) surface
+
 solve2 :: Parsed -> Sol2
 solve2 = length . outerSurface . buildShape
 
@@ -77,11 +96,19 @@ generateJSON :: String -> Parsed -> IO ()
 generateJSON filename parsed = writeFile filename $ [r|{
     "fullshape": |] ++ showShape fullshape ++ [r|,
     "innershape": |] ++ showShape innershape ++ [r|,
-    "outershape": |] ++ showShape outershape ++ "\n}\n"
+    "outershape": |] ++ showShape outershape ++ [r|,
+    "shadow": |] ++ show shadow ++ "\n}\n"
         where
             fullshape = buildShape parsed
             outershape = outerSurface fullshape
             innershape = fullshape Set.\\ outershape
+            shadow = map Set.toList $ filter (\s -> length s == 4) (
+                        (map (project xy) $ Set.toList fullshape)
+                        ++
+                        (map (project xz) $ Set.toList fullshape)
+                        ++
+                        (map (project zy) $ Set.toList fullshape)
+                    )
 
 
 testdata = [r|2,2,2

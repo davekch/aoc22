@@ -18,8 +18,9 @@ parser.add_argument("shapes")
 parser.add_argument("--full", action="store_true", help="show full shape")
 parser.add_argument("--outer", action="store_true", help="show the outer surface of the shape")
 parser.add_argument("--inner", action="store_true", help="show cavities")
+parser.add_argument("--shadow", action="store_true", help="show the shadow of the shape")
 args = parser.parse_args()
-if not args.full and not args.outer and not args.inner:
+if not args.full and not args.outer and not args.inner and not args.shadow:
     print("use flags --full, --outer, --inner to show shapes")
     exit()
 
@@ -36,6 +37,7 @@ with open(args.shapes) as f:
 full = shapes["fullshape"]
 outer = shapes["outershape"]
 inner = shapes["innershape"]
+shadow = shapes["shadow"]
 
 
 minx = min(p[0] for surface in full for p in surface)
@@ -65,6 +67,13 @@ outer_faces = to_poly(
     edgecolor="black",
 )
 
+shadow_faces = to_poly(
+    shadow,
+    alpha=0.3,
+    facecolor="gray",
+    edgecolor=None
+)
+
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
@@ -74,6 +83,8 @@ if args.outer:
     ax.add_collection3d(outer_faces)
 if args.inner:
     ax.add_collection3d(inner_faces)
+if args.shadow:
+    ax.add_collection3d(shadow_faces)
 
 ax.set_xlim(minx, maxx)
 ax.set_ylim(miny, maxy)
