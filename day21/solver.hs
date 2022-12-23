@@ -34,8 +34,6 @@ data Operator = Add | Sub | Mult | Div deriving (Eq, Show)
 data Expression = Var String
                 | Literal Int
                 | Term Expression Operator Expression
-                | FTerm Expression Operator Expression
-                | Unknown
                 deriving (Show)
 
 litParser = Literal . read <$> many1 digit
@@ -71,46 +69,38 @@ eval stack (Term (Var x1) o (Var x2)) = a `op` b
             Add -> (+)
             Sub -> (-)
             Mult -> (*)
+            -- Div -> (\a b -> if a `mod` b /= 0 then error "shit" else a `div` b)
             Div -> div
 eval stack other = trace (show other) $ undefined
-
-reduce :: Parsed -> Expression -> Expression
-reduce _     Unknown = Unknown
-reduce _     (Literal x) = Literal x
-reduce _     ft@(FTerm _ _ _) = ft
-reduce stack (Var x) = reduce stack (stack ! x)
-reduce stack (Term (Literal x1) o (Literal x2)) = Literal $ x1 `op` x2
-    where
-        op = case o of
-            Add -> (+)
-            Sub -> (-)
-            Mult -> (*)
-            Div -> div
-reduce stack (Term Unknown o subterm) = FTerm Unknown o (reduce stack subterm)
-reduce stack (Term subterm o Unknown) = FTerm (reduce stack subterm) o Unknown
-reduce stack (Term ft1@(FTerm _ _ _) o ft2@(FTerm _ _ _)) = FTerm ft1 o ft2
-reduce stack (Term ft1@(FTerm _ _ _) o t2) = FTerm ft1 o (reduce stack t2)
-reduce stack (Term t1 o ft2@(FTerm _ _ _)) = FTerm (reduce stack t1) o ft2
-reduce stack (Term sub1 o sub2) = reduce stack $ Term (reduce stack sub1) o (reduce stack sub2)
-
-
--- reduce stack (Term (Literal x1) o (Var x2)) = reduce stack $
---     Term (Literal x1) o (reduce stack (stack ! x2))
--- reduce stack (Term (Var x1) o (Literal x2)) = reduce stack $ 
---     Term (reduce stack (stack ! x1)) o (Literal x2)
--- reduce stack (Term (Var x1) o (Var x2)) = reduce stack $
---     Term (reduce stack (stack ! x1)) o (reduce stack (stack ! x2))
--- reduce stack term = term
 
 solve1 :: Parsed -> Sol1
 solve1 parsed = eval parsed (parsed ! "root")
 
-solve2 :: Parsed -> Sol2
-solve2 parsed = getval . fst . fromJust $ find snd [(stack'!"humn", eval stack' t1 == eval stack' t2) | stack' <- tries]
+findZero :: Int -> Int -> (Int -> Int) -> Int
+findZero x1 x2 update
+    | x1' == 0 = x1
+    | x2' == 0 = x2
+    | otherwise = -- trace (show x1 ++ " " ++ show x2 ++ " " ++ show m) $
+        if signum x1' == signum x2' then
+            -- no zero passing between x1 and x2
+            error "bad interval"
+        else if signum m' /= signum x1' then
+            findZero x1 m update
+        else
+            findZero x2 m update
     where
-        (Term t1 _ t2) = parsed ! "root"
-        tries = [Map.insert "humn" (Literal x) parsed | x <- [30000..50000]]
-        getval (Literal a) = a
+        x1' = update x1
+        x2' = update x2
+        m = (x1 + x2) `div` 2
+        m' = update m
+
+solve2 :: Parsed -> Sol2
+solve2 parsed = findZero 0 1000000000000000 f
+    where
+        f x =   let stack = Map.insert "humn" (Literal x) parsed
+                    (Term (Var t1) _ (Var t2)) = parsed ! "root"
+                in
+                    (eval stack (stack ! t1)) - (eval stack (stack ! t2))
 
 
 testdata = [r|root: pppw + sjmn
