@@ -45,7 +45,24 @@ $ pytest
 $ python solver.py
 ```
 
+#### Julia
+Templates are in `templates/jl`
+
+```bash
+$ python init.py -l jl
+$ cd dayXX
+$ julia
+julia> push!(LOAD_PATH, pwd())
+julia> using Revise
+julia> using Solver
+julia> test()  # or test(1) or test(2)
+julia> main()  # or main(1) or test(2)
+```
+code in `Solver.jl` gets hot reloaded, so code along and just keep your REPL running
+
 #### C++
+requires `cxxtest`: `sudo apt-get install cxxtest`
+
 Templates are in `templates/cpp`
 
 ```bash
@@ -70,11 +87,13 @@ $ ghc -i../utils/hs solver.hs
 $ ./solver
 ```
 
-Testing can be done in the repl:
+Run tests with `./solver --test` or in the repl:
 ```
 $ ghci -i../utils/hs solver.hs
 λ> test1
 λ> test2
 ```
+
+You can also run only part one or two with `./solver --part 1`.
 
 Utilities are in `utils/hs`
