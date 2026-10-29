@@ -65,7 +65,7 @@ cpop a cycle = Map.union (Map.fromList [(prev, prev'), (next, next')]) poppedcyc
 
 -- assumes that a and b are adjacent (and present)
 cinsertAfter :: Element -> Element -> Cycle -> Cycle
-cinsertAfter a new cycle = -- trace ("cinsert " ++ show new ++ " after " ++ show a ++ "; locals = " ++ show [ll, b, rr]) $
+cinsertAfter a new cycle = trace ("cinsert " ++ show new ++ " after " ++ show a) $
     Map.union patchedcycle cycle
     where
         (ll, b) = cycle ! a
@@ -73,7 +73,7 @@ cinsertAfter a new cycle = -- trace ("cinsert " ++ show new ++ " after " ++ show
         patchedcycle = Map.fromList [(a, (ll, new)), (new, (a,b)), (b, (new,rr))]
 
 move :: Element -> Cycle -> Cycle
-move x cycle = -- trace ("move " ++ show x ++ " after " ++ show a) $ 
+move x cycle = trace ("move " ++ show x ++ " after " ++ show a ++ " in cycle " ++ (show $ toList cycle)) $ 
     if a == x then cycle else cinsertAfter a x $ cpop x cycle
     where
         j = evalue x
